@@ -26,9 +26,15 @@
                 <span>Bearer token</span>
                 <input id="token" name="token" type="password" autocomplete="off" placeholder="local-test-token">
             </label>
+            <label class="signed-token-control">
+                <span>Signed JWT customer</span>
+                <select id="signed-token-select" disabled>
+                    <option value="">No signed JWT loaded</option>
+                </select>
+            </label>
             <label>
                 <span>Month</span>
-                <input id="month" name="month" type="month" value="2020-10" required>
+                <input id="month" name="month" type="month" value="2021-01" required>
             </label>
             <label>
                 <span>Target currency</span>
@@ -44,6 +50,7 @@
             </label>
             <div class="actions">
                 <button class="secondary" id="local-token" type="button">Local token</button>
+                <button class="secondary" id="load-signed-tokens" type="button">Signed JWTs</button>
                 <button type="submit">Fetch</button>
             </div>
         </form>

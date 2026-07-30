@@ -1,6 +1,9 @@
 const form = document.querySelector("#query-form");
 const tokenInput = document.querySelector("#token");
+const monthInput = document.querySelector("#month");
 const localTokenButton = document.querySelector("#local-token");
+const loadSignedTokensButton = document.querySelector("#load-signed-tokens");
+const signedTokenSelect = document.querySelector("#signed-token-select");
 const statusDot = document.querySelector("#status-dot");
 const statusText = document.querySelector("#status-text");
 const creditTotal = document.querySelector("#credit-total");
@@ -75,8 +78,54 @@ const buildUrl = (formData) => {
     return `/api/v1/transactions?${params.toString()}`;
 };
 
+const setTokenOptions = (tokens) => {
+    signedTokenSelect.innerHTML = "";
+    tokens.forEach((token) => {
+        const option = document.createElement("option");
+        option.value = token.token;
+        option.textContent = `${token.customerId} (${token.name})`;
+        signedTokenSelect.append(option);
+    });
+    signedTokenSelect.disabled = !tokens.length;
+    if (tokens.length) {
+        signedTokenSelect.value = tokens[0].token;
+        tokenInput.value = tokens[0].token;
+        monthInput.value = "2021-01";
+    }
+};
+
 localTokenButton.addEventListener("click", () => {
     tokenInput.value = "local-test-token";
+    tokenInput.focus();
+});
+
+loadSignedTokensButton.addEventListener("click", async () => {
+    loadSignedTokensButton.disabled = true;
+    setStatus("Loading signed JWTs");
+    try {
+        const response = await fetch("http://localhost:9098/demo-tokens.json", {
+            cache: "no-store"
+        });
+        if (!response.ok) {
+            throw new Error(`Signed JWT demo unavailable at HTTP ${response.status}`);
+        }
+        const body = await response.json();
+        const tokens = Array.isArray(body.tokens) ? body.tokens : [];
+        if (!tokens.length) {
+            throw new Error("No signed JWT demo tokens found");
+        }
+        setTokenOptions(tokens);
+        setStatus("Signed JWT loaded", "ok");
+    } catch (error) {
+        setStatus("Signed JWTs unavailable", "error");
+        setEmptyRows(error.message);
+    } finally {
+        loadSignedTokensButton.disabled = false;
+    }
+});
+
+signedTokenSelect.addEventListener("change", () => {
+    tokenInput.value = signedTokenSelect.value;
     tokenInput.focus();
 });
 

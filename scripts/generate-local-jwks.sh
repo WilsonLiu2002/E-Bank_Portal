@@ -4,6 +4,7 @@ set -euo pipefail
 IDENTITY_DIR="${IDENTITY_DIR:-local/identity}"
 PRIVATE_KEY="${PRIVATE_KEY:-${IDENTITY_DIR}/private.pem}"
 JWKS_FILE="${JWKS_FILE:-${IDENTITY_DIR}/public/.well-known/jwks.json}"
+DEMO_TOKENS_JSON="${DEMO_TOKENS_JSON:-${IDENTITY_DIR}/public/demo-tokens.json}"
 TOKENS_FILE="${TOKENS_FILE:-${IDENTITY_DIR}/tokens.env}"
 JWT_ISSUER="${JWT_ISSUER:-http://localhost:9098}"
 JWT_KEY_ID="${JWT_KEY_ID:-local-demo-key}"
@@ -16,14 +17,14 @@ if [[ ! -f "${PRIVATE_KEY}" ]]; then
   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "${PRIVATE_KEY}" >/dev/null 2>&1
 fi
 
-python3 - "${PRIVATE_KEY}" "${JWKS_FILE}" "${TOKENS_FILE}" "${JWT_ISSUER}" "${JWT_KEY_ID}" "${JWT_TTL_SECONDS}" <<'PY'
+python3 - "${PRIVATE_KEY}" "${JWKS_FILE}" "${DEMO_TOKENS_JSON}" "${TOKENS_FILE}" "${JWT_ISSUER}" "${JWT_KEY_ID}" "${JWT_TTL_SECONDS}" <<'PY'
 import base64
 import json
 import subprocess
 import sys
 import time
 
-private_key, jwks_file, tokens_file, issuer, key_id, ttl_seconds = sys.argv[1:]
+private_key, jwks_file, demo_tokens_json, tokens_file, issuer, key_id, ttl_seconds = sys.argv[1:]
 ttl_seconds = int(ttl_seconds)
 
 customers = [
@@ -83,14 +84,31 @@ def signed_token(customer_id: str) -> str:
     )
     return f"{signing_input}.{b64url(signature)}"
 
+demo_tokens = []
+
 with open(tokens_file, "w", encoding="utf-8") as handle:
     handle.write("# Generated local RS256 JWTs. Do not commit this file.\n")
     handle.write(f"JWKS_URL='{issuer}/.well-known/jwks.json'\n")
     for index, customer_id in enumerate(customers):
         name = "TOKEN_DEFAULT" if index == 0 else f"TOKEN_CUSTOMER_{index}"
-        handle.write(f"{name}='{signed_token(customer_id)}'\n")
+        token = signed_token(customer_id)
+        handle.write(f"{name}='{token}'\n")
+        demo_tokens.append({
+            "name": name,
+            "customerId": customer_id,
+            "token": token,
+        })
+
+with open(demo_tokens_json, "w", encoding="utf-8") as handle:
+    json.dump({
+        "issuer": issuer,
+        "jwksUrl": f"{issuer}/.well-known/jwks.json",
+        "tokens": demo_tokens,
+    }, handle, indent=2)
+    handle.write("\n")
 
 print(f"Wrote JWKS: {jwks_file}")
+print(f"Wrote browser demo tokens: {demo_tokens_json}")
 print(f"Wrote demo tokens: {tokens_file}")
 print("")
 print("Demo token mapping:")

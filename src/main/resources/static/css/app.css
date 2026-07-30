@@ -29,7 +29,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
     font: inherit;
 }
 
@@ -125,7 +126,7 @@ h1 {
 
 .controls {
     display: grid;
-    grid-template-columns: minmax(240px, 1.5fr) minmax(140px, 0.8fr) minmax(130px, 0.7fr) 92px 92px auto;
+    grid-template-columns: minmax(240px, 1.5fr) minmax(220px, 1fr) minmax(140px, 0.7fr) minmax(130px, 0.7fr) 92px 92px auto;
     gap: 12px;
     align-items: end;
     padding: 16px;
@@ -144,7 +145,8 @@ label span {
     text-transform: uppercase;
 }
 
-input {
+input,
+select {
     width: 100%;
     min-height: 42px;
     border: 1px solid #c9d1df;
@@ -155,7 +157,12 @@ input {
     outline: none;
 }
 
-input:focus {
+select {
+    appearance: none;
+}
+
+input:focus,
+select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(23, 107, 135, 0.15);
 }

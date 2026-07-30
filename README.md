@@ -178,6 +178,8 @@ This generates a local RSA key pair, serves a JWKS document from `http://localho
 local/identity/tokens.env
 ```
 
+The browser UI can load the same generated tokens from the local identity service. Open `http://localhost:8080/`, click `Signed JWTs`, choose a customer, and click `Fetch`.
+
 Load them in a shell:
 
 ```bash

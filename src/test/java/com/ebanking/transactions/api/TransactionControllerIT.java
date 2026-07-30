@@ -201,7 +201,8 @@ class TransactionControllerIT {
 
         mockMvc.perform(get("/index.html"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Monthly account activity")));
+                .andExpect(content().string(containsString("Monthly account activity")))
+                .andExpect(content().string(containsString("Signed JWT customer")));
 
         mockMvc.perform(get("/css/app.css"))
                 .andExpect(status().isOk());

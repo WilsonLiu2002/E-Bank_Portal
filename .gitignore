@@ -8,4 +8,5 @@ target/
 !.env.example
 local/identity/private.pem
 local/identity/public/.well-known/jwks.json
+local/identity/public/demo-tokens.json
 local/identity/tokens.env
