@@ -4,6 +4,7 @@ set -euo pipefail
 APP_BASE_URL="${APP_BASE_URL:-http://localhost:8080}"
 TOKEN="${TOKEN:-local-test-token}"
 SMOKE_APP_LOG="${SMOKE_APP_LOG:-target/e2e-smoke-app.log}"
+SMOKE_MONTH="${SMOKE_MONTH:-2035-10}"
 
 APP_PID=""
 RESPONSE_FILE="$(mktemp)"
@@ -34,7 +35,7 @@ wait_for_url() {
 }
 
 assert_json() {
-  python3 - "${RESPONSE_FILE}" <<'PY'
+  python3 - "${RESPONSE_FILE}" "${SMOKE_MONTH}" <<'PY'
 import json
 import sys
 from decimal import Decimal
@@ -42,6 +43,7 @@ from decimal import Decimal
 with open(sys.argv[1], encoding="utf-8") as handle:
     body = json.load(handle)
 
+smoke_month = sys.argv[2]
 transactions = body["transactions"]
 ids = {transaction["id"] for transaction in transactions}
 
@@ -53,7 +55,11 @@ assert Decimal(str(body["totalDebit"]["amount"])) == Decimal("188.50"), body["to
 assert body["totalCredit"]["currency"] == "CHF", body["totalCredit"]
 assert body["totalDebit"]["currency"] == "CHF", body["totalDebit"]
 
-expected_order = ["tx-2020-10-003", "tx-2020-10-001", "tx-2020-10-002"]
+expected_order = [
+    f"tx-{smoke_month}-003",
+    f"tx-{smoke_month}-001",
+    f"tx-{smoke_month}-002",
+]
 actual_order = [transaction["id"] for transaction in transactions]
 assert actual_order == expected_order, actual_order
 PY
@@ -89,12 +95,12 @@ echo "Seeding account ownership"
 ./scripts/seed-local-db.sh
 
 echo "Publishing sample Kafka transactions"
-./scripts/publish-sample-transactions.sh
+SAMPLE_MONTH="${SMOKE_MONTH}" ./scripts/publish-sample-transactions.sh
 
 echo "Waiting for Kafka ingestion and validating API response"
 for _ in $(seq 1 30); do
   curl -fsS -H "Authorization: Bearer ${TOKEN}" \
-    "${APP_BASE_URL}/api/v1/transactions?month=2020-10&page=0&size=20&targetCurrency=CHF" \
+    "${APP_BASE_URL}/api/v1/transactions?month=${SMOKE_MONTH}&page=0&size=20&targetCurrency=CHF" \
     >"${RESPONSE_FILE}"
 
   if assert_json >/dev/null 2>&1; then

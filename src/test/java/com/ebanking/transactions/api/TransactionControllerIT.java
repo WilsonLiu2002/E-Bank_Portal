@@ -52,36 +52,33 @@ class TransactionControllerIT {
         accountOwnershipRepository.save(new AccountOwnership("GB11-0000-0000-0000-0000-0", CUSTOMER_ID, "GBP"));
         accountOwnershipRepository.save(new AccountOwnership("DE22-0000-0000-0000-0000-0", "P-9999999999", "EUR"));
 
-        transactionRepository.save(new MoneyAccountTransaction(
+        saveTransaction(
                 "credit-1",
                 CUSTOMER_ID,
                 new BigDecimal("100.00"),
                 "CHF",
                 "CH93-0000-0000-0000-0000-0",
                 LocalDate.of(2020, 10, 2),
-                "Salary",
-                Instant.parse("2026-01-01T00:00:00Z")
-        ));
-        transactionRepository.save(new MoneyAccountTransaction(
+                "Salary"
+        );
+        saveTransaction(
                 "debit-1",
                 CUSTOMER_ID,
                 new BigDecimal("-50.00"),
                 "GBP",
                 "GB11-0000-0000-0000-0000-0",
                 LocalDate.of(2020, 10, 1),
-                "Online payment",
-                Instant.parse("2026-01-01T00:00:00Z")
-        ));
-        transactionRepository.save(new MoneyAccountTransaction(
+                "Online payment"
+        );
+        saveTransaction(
                 "other-customer",
                 "P-9999999999",
                 new BigDecimal("999.00"),
                 "EUR",
                 "DE22-0000-0000-0000-0000-0",
                 LocalDate.of(2020, 10, 1),
-                "Hidden from caller",
-                Instant.parse("2026-01-01T00:00:00Z")
-        ));
+                "Hidden from caller"
+        );
     }
 
     @Test
@@ -99,6 +96,88 @@ class TransactionControllerIT {
                 .andExpect(jsonPath("$.totalDebit.amount").value(60.00))
                 .andExpect(jsonPath("$.totalDebit.currency").value("CHF"))
                 .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
+    void paginatesDeterministicallyAndCalculatesTotalsForCurrentPageOnly() throws Exception {
+        saveTransaction(
+                "credit-2",
+                CUSTOMER_ID,
+                new BigDecimal("40.00"),
+                "CHF",
+                "CH93-0000-0000-0000-0000-0",
+                LocalDate.of(2020, 10, 3),
+                "Refund"
+        );
+        saveTransaction(
+                "debit-2",
+                CUSTOMER_ID,
+                new BigDecimal("-10.00"),
+                "CHF",
+                "CH93-0000-0000-0000-0000-0",
+                LocalDate.of(2020, 10, 3),
+                "Fee"
+        );
+
+        mockMvc.perform(get("/api/v1/transactions")
+                        .param("month", "2020-10")
+                        .param("targetCurrency", "CHF")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .with(jwt().jwt(token -> token.claim("customer_id", CUSTOMER_ID))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.transactions", hasSize(2)))
+                .andExpect(jsonPath("$.transactions[0].id").value("credit-2"))
+                .andExpect(jsonPath("$.transactions[1].id").value("debit-2"))
+                .andExpect(jsonPath("$.totalCredit.amount").value(40.00))
+                .andExpect(jsonPath("$.totalDebit.amount").value(10.00))
+                .andExpect(jsonPath("$.page.page").value(0))
+                .andExpect(jsonPath("$.page.size").value(2))
+                .andExpect(jsonPath("$.page.totalElements").value(4))
+                .andExpect(jsonPath("$.page.totalPages").value(2));
+    }
+
+    @Test
+    void filtersTransactionsToRequestedCalendarMonth() throws Exception {
+        saveTransaction(
+                "november-1",
+                CUSTOMER_ID,
+                new BigDecimal("500.00"),
+                "CHF",
+                "CH93-0000-0000-0000-0000-0",
+                LocalDate.of(2020, 11, 1),
+                "Next month"
+        );
+
+        mockMvc.perform(get("/api/v1/transactions")
+                        .param("month", "2020-11")
+                        .param("targetCurrency", "CHF")
+                        .with(jwt().jwt(token -> token.claim("customer_id", CUSTOMER_ID))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.transactions", hasSize(1)))
+                .andExpect(jsonPath("$.transactions[0].id").value("november-1"))
+                .andExpect(jsonPath("$.totalCredit.amount").value(500.00))
+                .andExpect(jsonPath("$.totalDebit.amount").value(0));
+    }
+
+    @Test
+    void rejectsInvalidQueryParameters() throws Exception {
+        mockMvc.perform(get("/api/v1/transactions")
+                        .param("month", "2020-13")
+                        .with(jwt().jwt(token -> token.claim("customer_id", CUSTOMER_ID))))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/api/v1/transactions")
+                        .param("month", "2020-10")
+                        .param("targetCurrency", "chf")
+                        .with(jwt().jwt(token -> token.claim("customer_id", CUSTOMER_ID))))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/api/v1/transactions")
+                        .param("month", "2020-10")
+                        .param("size", "201")
+                        .with(jwt().jwt(token -> token.claim("customer_id", CUSTOMER_ID))))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -144,5 +223,24 @@ class TransactionControllerIT {
                 return BigDecimal.ONE;
             };
         }
+    }
+
+    private MoneyAccountTransaction saveTransaction(String transactionId,
+                                                    String customerId,
+                                                    BigDecimal amount,
+                                                    String currency,
+                                                    String accountIban,
+                                                    LocalDate valueDate,
+                                                    String description) {
+        return transactionRepository.save(new MoneyAccountTransaction(
+                transactionId,
+                customerId,
+                amount,
+                currency,
+                accountIban,
+                valueDate,
+                description,
+                Instant.parse("2026-01-01T00:00:00Z")
+        ));
     }
 }

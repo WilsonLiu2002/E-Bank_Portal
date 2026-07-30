@@ -40,6 +40,32 @@ The script then:
 - Verifies deterministic ordering by value date and transaction ID.
 - Verifies page totals: `CHF 2,500.00` credit and `CHF 188.50` debit.
 
+## Synthetic Data Set
+
+Run:
+
+```bash
+./scripts/generate-synthetic-transactions.sh
+```
+
+The generator produces deterministic Kafka events across multiple customers, accounts, currencies, and months. Defaults:
+
+```text
+5 customers
+3 accounts per customer
+12 months from 2021-01
+12 transactions per account/month
+2,160 transaction events
+```
+
+The first generated customer is `P-0123456789`, so the local UI token can be used to browse the synthetic data immediately.
+
+Increase the data volume:
+
+```bash
+SYNTH_CUSTOMERS=10 SYNTH_MONTHS=24 SYNTH_TX_PER_ACCOUNT_MONTH=25 ./scripts/generate-synthetic-transactions.sh
+```
+
 ## Manual Browser Demo
 
 Open:
@@ -90,3 +116,4 @@ Expected rows:
 | Monitoring | Actuator health/readiness/liveness/metrics/Prometheus endpoints |
 | Docker/Kubernetes/OpenShift | `Dockerfile`, `docker-compose.yml`, `k8s/` manifests |
 | CI | CircleCI `mvn --batch-mode verify` pipeline |
+| Larger demo data | `scripts/generate-synthetic-transactions.sh` publishes deterministic Kafka data |

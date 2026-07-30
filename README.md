@@ -137,6 +137,18 @@ Publish sample Kafka transactions:
 ./scripts/publish-sample-transactions.sh
 ```
 
+Generate a larger deterministic synthetic dataset through Kafka:
+
+```bash
+./scripts/generate-synthetic-transactions.sh
+```
+
+The generator defaults to 5 customers, 3 accounts per customer, 12 months from `2021-01`, and 12 transactions per account/month. Override the size with environment variables:
+
+```bash
+SYNTH_CUSTOMERS=10 SYNTH_MONTHS=24 SYNTH_TX_PER_ACCOUNT_MONTH=25 ./scripts/generate-synthetic-transactions.sh
+```
+
 Query the API with the local development token:
 
 ```bash
