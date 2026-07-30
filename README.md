@@ -16,6 +16,7 @@ Reusable Spring Boot REST API for returning a paginated list of money account tr
 - Health, readiness, liveness, metrics, and Prometheus actuator endpoints.
 - Dockerfile and Kubernetes/OpenShift manifests.
 - CircleCI configuration running `mvn verify`.
+- Local end-to-end smoke test that exercises PostgreSQL, Kafka, exchange rates, JWT security, and the API response.
 
 ## API Model
 
@@ -174,6 +175,14 @@ The local profile uses a fixed token only for laptop testing. Production deploym
 mvn verify
 ```
 
+Run the local end-to-end smoke test:
+
+```bash
+./scripts/e2e-smoke-test.sh
+```
+
+The smoke test starts local dependencies, publishes sample Kafka transactions, calls the secured API, and verifies row-level authorization plus converted totals.
+
 Build the image after the jar is produced:
 
 ```bash
@@ -213,3 +222,4 @@ Successful CircleCI pipeline: [E-Bank_Portal build-test](https://app.circleci.co
 
 - [Architecture](docs/architecture.md)
 - [Design Decisions](docs/decisions.md)
+- [Test Plan](docs/test-plan.md)
