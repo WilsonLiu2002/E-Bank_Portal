@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-docker compose exec -T kafka kafka-console-producer.sh \
+docker compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh \
   --bootstrap-server kafka:9092 \
   --topic money-account-transactions \
   --property parse.key=true \
