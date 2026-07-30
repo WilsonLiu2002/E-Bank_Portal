@@ -1,0 +1,24 @@
+spring:
+  jpa:
+    open-in-view: false
+  kafka:
+    consumer:
+      group-id: transaction-service-test
+    listener:
+      auto-startup: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost/unused-test-jwks
+
+exchange-rate:
+  base-url: http://localhost/unused-test-rates
+
+transactions:
+  kafka:
+    topic: money-account-transactions-test
+
+logging:
+  level:
+    org.springframework.kafka: WARN
