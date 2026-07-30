@@ -16,6 +16,7 @@ Covered by CI:
 - Unit test for page-level money conversion totals.
 - Integration tests for transaction ingestion into the read model.
 - Integration tests for the secured transaction API.
+- Integration tests for real RS256-signed JWT bearer tokens and tamper rejection.
 - Integration checks for unauthenticated rejection, OpenAPI exposure, and demo UI static assets.
 
 CircleCI runs the same Maven command on every pushed commit.
@@ -105,7 +106,7 @@ Expected rows:
 | Requirement | Verification |
 | --- | --- |
 | Secured REST API | `TransactionControllerIT`, manual/API smoke test |
-| Logged-on customer authorization | `TransactionControllerIT`, smoke test excludes `tx-other-customer` |
+| Logged-on customer authorization | `TransactionControllerIT`, `SignedJwtResourceServerIT`, smoke test excludes `tx-other-customer` |
 | Calendar-month pagination | `TransactionControllerIT`, smoke test query for `2020-10` |
 | Kafka transaction source | `TransactionIngestionServiceTest`, smoke test publishes Kafka records |
 | Kafka key as transaction ID | `TransactionConsumer` and ingestion tests |
@@ -117,3 +118,4 @@ Expected rows:
 | Docker/Kubernetes/OpenShift | `Dockerfile`, `docker-compose.yml`, `k8s/` manifests |
 | CI | CircleCI `mvn --batch-mode verify` pipeline |
 | Larger demo data | `scripts/generate-synthetic-transactions.sh` publishes deterministic Kafka data |
+| Production-style JWT validation | `SignedJwtResourceServerIT`, `scripts/start-signed-jwt-demo.sh`, local JWKS at `http://localhost:9098/.well-known/jwks.json` |

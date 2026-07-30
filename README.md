@@ -164,6 +164,43 @@ http://localhost:8080/
 
 Use `local-test-token` with the local profile.
 
+## Local Signed-JWT Demo
+
+The `local` profile uses a fixed shortcut token for fast demos. To test the production-style JWT path locally, run the signed-JWT demo instead:
+
+```bash
+./scripts/start-signed-jwt-demo.sh
+```
+
+This generates a local RSA key pair, serves a JWKS document from `http://localhost:9098/.well-known/jwks.json`, and starts the app without the shortcut local `JwtDecoder`. Demo tokens are written to:
+
+```text
+local/identity/tokens.env
+```
+
+Load them in a shell:
+
+```bash
+source local/identity/tokens.env
+```
+
+Then call the API with a real RS256-signed JWT:
+
+```bash
+curl -H "Authorization: Bearer ${TOKEN_DEFAULT}" \
+  "http://localhost:8080/api/v1/transactions?month=2021-01&page=0&size=20&targetCurrency=CHF"
+```
+
+The generated token mappings are:
+
+```text
+TOKEN_DEFAULT    -> P-0123456789
+TOKEN_CUSTOMER_1 -> P-2000000001
+TOKEN_CUSTOMER_2 -> P-2000000002
+TOKEN_CUSTOMER_3 -> P-2000000003
+TOKEN_CUSTOMER_4 -> P-2000000004
+```
+
 Expected behavior:
 
 - The API returns only transactions owned by `P-0123456789`.

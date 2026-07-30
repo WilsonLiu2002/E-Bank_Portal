@@ -6,3 +6,6 @@ target/
 *.log
 .env
 !.env.example
+local/identity/private.pem
+local/identity/public/.well-known/jwks.json
+local/identity/tokens.env

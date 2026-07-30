@@ -58,6 +58,14 @@ services:
       - ./local/mock-rates:/usr/share/nginx/html:ro
       - ./local/mock-rates/default.conf:/etc/nginx/conf.d/default.conf:ro
 
+  local-identity:
+    image: nginx:latest
+    ports:
+      - "9098:80"
+    volumes:
+      - ./local/identity/public:/usr/share/nginx/html:ro
+      - ./local/identity/default.conf:/etc/nginx/conf.d/default.conf:ro
+
   transaction-service:
     build: .
     depends_on:
