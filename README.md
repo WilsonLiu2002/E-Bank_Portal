@@ -198,7 +198,7 @@ The repository includes `.circleci/config.yml`. After pushing the repository and
 mvn --batch-mode verify
 ```
 
-The resulting CircleCI pipeline URL should be added here once the remote repository is connected.
+Successful CircleCI pipeline: [E-Bank_Portal build-test](https://app.circleci.com/pipelines/github/WilsonLiu2002/E-Bank_Portal).
 
 ## Architecture Documentation
 
