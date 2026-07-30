@@ -1,0 +1,7 @@
+target/*
+!target/transaction-service-0.1.0-SNAPSHOT.jar
+.git/
+.idea/
+.vscode/
+*.iml
+*.log

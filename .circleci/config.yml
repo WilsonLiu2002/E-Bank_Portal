@@ -1,0 +1,30 @@
+version: 2.1
+
+orbs:
+  maven: circleci/maven@2.1.1
+
+jobs:
+  test:
+    docker:
+      - image: cimg/openjdk:17.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - maven-v1-{{ checksum "pom.xml" }}
+      - run:
+          name: Unit and integration tests
+          command: mvn --batch-mode verify
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-v1-{{ checksum "pom.xml" }}
+      - store_test_results:
+          path: target/surefire-reports
+      - store_artifacts:
+          path: target
+
+workflows:
+  build-test:
+    jobs:
+      - test

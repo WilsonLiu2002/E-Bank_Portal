@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: transaction-service-config
+data:
+  SERVER_PORT: "8080"
+  TRANSACTIONS_TOPIC: "money-account-transactions"
+  KAFKA_GROUP_ID: "transaction-service"
+  EXCHANGE_RATE_CACHE_TTL: "PT5M"
