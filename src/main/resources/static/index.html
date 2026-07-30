@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>E-Banking Transaction Demo</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<main class="shell">
+    <section class="summary-band" aria-labelledby="page-title">
+        <div>
+            <p class="eyebrow">Transaction API demo</p>
+            <h1 id="page-title">Monthly account activity</h1>
+            <p class="lede">Query the secured REST endpoint and inspect converted page totals from the live service.</p>
+        </div>
+        <div class="status-panel" aria-live="polite">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Waiting for query</span>
+        </div>
+    </section>
+
+    <section class="workspace" aria-label="Transaction query workspace">
+        <form class="controls" id="query-form">
+            <label>
+                <span>Bearer token</span>
+                <input id="token" name="token" type="password" autocomplete="off" placeholder="local-test-token">
+            </label>
+            <label>
+                <span>Month</span>
+                <input id="month" name="month" type="month" value="2020-10" required>
+            </label>
+            <label>
+                <span>Target currency</span>
+                <input id="targetCurrency" name="targetCurrency" maxlength="3" value="CHF" required>
+            </label>
+            <label>
+                <span>Page</span>
+                <input id="page" name="page" type="number" min="0" value="0" required>
+            </label>
+            <label>
+                <span>Size</span>
+                <input id="size" name="size" type="number" min="1" max="200" value="20" required>
+            </label>
+            <div class="actions">
+                <button class="secondary" id="local-token" type="button">Local token</button>
+                <button type="submit">Fetch</button>
+            </div>
+        </form>
+
+        <section class="totals" aria-label="Converted page totals">
+            <article>
+                <span>Credit total</span>
+                <strong id="credit-total">--</strong>
+            </article>
+            <article>
+                <span>Debit total</span>
+                <strong id="debit-total">--</strong>
+            </article>
+            <article>
+                <span>Page result</span>
+                <strong id="page-total">--</strong>
+            </article>
+        </section>
+
+        <section class="table-shell" aria-label="Transactions">
+            <div class="table-head">
+                <h2>Transactions</h2>
+                <span id="request-path">/api/v1/transactions</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>IBAN</th>
+                        <th class="numeric">Amount</th>
+                    </tr>
+                    </thead>
+                    <tbody id="transactions-body">
+                    <tr>
+                        <td colspan="4" class="empty">Run a query to load transactions.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </section>
+</main>
+<script src="/js/app.js"></script>
+</body>
+</html>

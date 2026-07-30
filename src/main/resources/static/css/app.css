@@ -1,0 +1,360 @@
+:root {
+    color-scheme: light;
+    --ink: #172033;
+    --muted: #637086;
+    --line: #d8deea;
+    --paper: #f7f8fb;
+    --panel: #ffffff;
+    --panel-strong: #eef2f7;
+    --accent: #176b87;
+    --accent-dark: #0f5168;
+    --credit: #137a45;
+    --debit: #a13b2d;
+    --warning: #a06112;
+    --shadow: 0 18px 50px rgba(24, 37, 56, 0.10);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    color: var(--ink);
+    background:
+            linear-gradient(135deg, rgba(23, 107, 135, 0.08), transparent 35%),
+            linear-gradient(180deg, #ffffff 0%, var(--paper) 48%, #edf1f6 100%);
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.shell {
+    width: min(1180px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 32px 0;
+}
+
+.summary-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: end;
+    padding: 30px 0 24px;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+    margin: 0;
+}
+
+h1 {
+    font-size: clamp(34px, 5vw, 66px);
+    line-height: 0.96;
+    letter-spacing: 0;
+    max-width: 780px;
+}
+
+.lede {
+    max-width: 620px;
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.55;
+}
+
+.status-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 210px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 8px 22px rgba(24, 37, 56, 0.06);
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--warning);
+}
+
+.status-dot.ok {
+    background: var(--credit);
+}
+
+.status-dot.error {
+    background: var(--debit);
+}
+
+.workspace {
+    display: grid;
+    gap: 18px;
+}
+
+.controls,
+.totals,
+.table-shell {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: var(--shadow);
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.5fr) minmax(140px, 0.8fr) minmax(130px, 0.7fr) 92px 92px auto;
+    gap: 12px;
+    align-items: end;
+    padding: 16px;
+}
+
+label {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+}
+
+label span {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid #c9d1df;
+    border-radius: 6px;
+    padding: 0 12px;
+    background: #fbfcfe;
+    color: var(--ink);
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(23, 107, 135, 0.15);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 6px;
+    padding: 0 16px;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+button:hover {
+    background: var(--accent-dark);
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+button.secondary {
+    border: 1px solid #c9d1df;
+    background: var(--panel-strong);
+    color: var(--ink);
+}
+
+button.secondary:hover {
+    background: #e1e7f0;
+}
+
+.totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
+}
+
+.totals article {
+    display: grid;
+    gap: 8px;
+    min-height: 112px;
+    padding: 18px;
+    border-right: 1px solid var(--line);
+}
+
+.totals article:last-child {
+    border-right: 0;
+}
+
+.totals span {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.totals strong {
+    align-self: end;
+    overflow-wrap: anywhere;
+    font-size: clamp(24px, 4vw, 42px);
+    letter-spacing: 0;
+}
+
+.table-shell {
+    overflow: hidden;
+}
+
+.table-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+h2 {
+    font-size: 18px;
+}
+
+#request-path {
+    color: var(--muted);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+}
+
+th,
+td {
+    padding: 15px 18px;
+    border-bottom: 1px solid #e5e9f1;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    color: var(--muted);
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+td {
+    font-size: 14px;
+}
+
+.numeric {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.amount-credit {
+    color: var(--credit);
+    font-weight: 800;
+}
+
+.amount-debit {
+    color: var(--debit);
+    font-weight: 800;
+}
+
+.empty {
+    height: 120px;
+    color: var(--muted);
+    text-align: center;
+    vertical-align: middle;
+}
+
+@media (max-width: 980px) {
+    .summary-band {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .status-panel {
+        width: 100%;
+    }
+
+    .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+    }
+
+    .actions button {
+        flex: 1;
+    }
+}
+
+@media (max-width: 680px) {
+    .shell {
+        width: min(100vw - 20px, 1180px);
+        padding: 16px 0;
+    }
+
+    .summary-band {
+        padding-top: 14px;
+    }
+
+    .controls,
+    .totals {
+        grid-template-columns: 1fr;
+    }
+
+    .totals article {
+        min-height: 92px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .totals article:last-child {
+        border-bottom: 0;
+    }
+
+    .table-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

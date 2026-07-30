@@ -12,6 +12,7 @@ Reusable Spring Boot REST API for returning a paginated list of money account tr
 - Efficient customer-month pagination using the `(customer_id, value_date desc, transaction_id)` index.
 - Current exchange-rate lookup with a short in-memory cache and one retry.
 - OpenAPI at `/v3/api-docs` and Swagger UI at `/swagger-ui.html`.
+- Lightweight demo UI at `/` for querying the secured API from a browser.
 - Health, readiness, liveness, metrics, and Prometheus actuator endpoints.
 - Dockerfile and Kubernetes/OpenShift manifests.
 - CircleCI configuration running `mvn verify`.
@@ -141,6 +142,14 @@ Query the API with the local development token:
 curl -H "Authorization: Bearer local-test-token" \
   "http://localhost:8080/api/v1/transactions?month=2020-10&page=0&size=20&targetCurrency=CHF"
 ```
+
+Or open the browser UI:
+
+```text
+http://localhost:8080/
+```
+
+Use `local-test-token` with the local profile.
 
 Expected behavior:
 
