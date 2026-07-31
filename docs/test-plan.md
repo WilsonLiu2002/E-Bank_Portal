@@ -17,9 +17,12 @@ Covered by CI:
 - Integration tests for transaction ingestion into the read model.
 - Integration tests for the secured transaction API.
 - Integration tests for real RS256-signed JWT bearer tokens and tamper rejection.
-- Integration checks for unauthenticated rejection, OpenAPI exposure, and demo UI static assets.
+- Integration checks for unauthenticated rejection, OpenAPI contract shape, request correlation, and demo UI static assets.
+- Testcontainers integration test for real Kafka ingestion into a real PostgreSQL read model.
 
 CircleCI runs the same Maven command on every pushed commit.
+
+The Testcontainers suite requires Docker. CI enables a Docker daemon before running Maven so the Kafka and PostgreSQL containers can start.
 
 ## Local End-to-End Smoke Test
 
@@ -114,6 +117,9 @@ Expected rows:
 | Current exchange-rate lookup | exchange client configuration and mock-rates smoke test |
 | Schema evolution | Jackson ignores unknown JSON fields and event contains `schemaVersion` |
 | OpenAPI | `/v3/api-docs`, `/swagger-ui.html`, `TransactionControllerIT` |
+| OpenAPI contract stability | `TransactionControllerIT` verifies the published path, parameters, responses, and bearer security scheme |
+| Request correlation and logging | `RequestCorrelationFilter`, API header assertions, MDC-backed log pattern |
+| Real infrastructure integration | `TransactionServiceContainerIT` runs Kafka and PostgreSQL with Testcontainers |
 | Monitoring | Actuator health/readiness/liveness/metrics/Prometheus endpoints |
 | Docker/Kubernetes/OpenShift | `Dockerfile`, `docker-compose.yml`, `k8s/` manifests |
 | CI | CircleCI `mvn --batch-mode verify` pipeline |

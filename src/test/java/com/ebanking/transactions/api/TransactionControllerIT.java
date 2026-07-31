@@ -5,6 +5,8 @@ import com.ebanking.transactions.domain.AccountOwnershipRepository;
 import com.ebanking.transactions.domain.MoneyAccountTransaction;
 import com.ebanking.transactions.domain.MoneyAccountTransactionRepository;
 import com.ebanking.transactions.exchange.ExchangeRateClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +21,14 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,6 +46,9 @@ class TransactionControllerIT {
 
     @Autowired
     private MoneyAccountTransactionRepository transactionRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -86,8 +93,10 @@ class TransactionControllerIT {
         mockMvc.perform(get("/api/v1/transactions")
                         .param("month", "2020-10")
                         .param("targetCurrency", "CHF")
+                        .header("X-Request-Id", "test-request-123")
                         .with(jwt().jwt(token -> token.claim("customer_id", CUSTOMER_ID))))
                 .andExpect(status().isOk())
+                .andExpect(header().string("X-Request-Id", "test-request-123"))
                 .andExpect(jsonPath("$.transactions", hasSize(2)))
                 .andExpect(jsonPath("$.transactions[0].id").value("credit-1"))
                 .andExpect(jsonPath("$.transactions[1].id").value("debit-1"))
@@ -188,9 +197,34 @@ class TransactionControllerIT {
 
     @Test
     void exposesOpenApiContractWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/v3/api-docs"))
+        String contract = mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.paths['/api/v1/transactions']").exists());
+                .andExpect(jsonPath("$.openapi").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/transactions']").exists())
+                .andExpect(jsonPath("$.components.securitySchemes['bearer-jwt']").exists())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        JsonNode root = objectMapper.readTree(contract);
+        JsonNode operation = root.at("/paths/~1api~1v1~1transactions/get");
+        assertThat(operation.at("/security/0/bearer-jwt").isArray()).isTrue();
+        assertThat(operation.at("/responses/200").isMissingNode()).isFalse();
+        assertThat(operation.at("/responses/400").isMissingNode()).isFalse();
+        assertThat(operation.at("/responses/401").isMissingNode()).isFalse();
+        assertThat(operation.at("/responses/403").isMissingNode()).isFalse();
+
+        JsonNode parameters = operation.path("parameters");
+        assertThat(parameters).hasSize(4);
+        assertThat(parameterNamed(parameters, "month").at("/schema/pattern").asText()).isEqualTo("\\d{4}-\\d{2}");
+        assertThat(parameterNamed(parameters, "targetCurrency").at("/schema/pattern").asText()).isEqualTo("[A-Z]{3}");
+        assertThat(parameterNamed(parameters, "page").at("/schema/minimum").asInt()).isZero();
+        assertThat(parameterNamed(parameters, "size").at("/schema/maximum").asInt()).isEqualTo(200);
+
+        JsonNode securityScheme = root.at("/components/securitySchemes/bearer-jwt");
+        assertThat(securityScheme.path("type").asText()).isEqualTo("http");
+        assertThat(securityScheme.path("scheme").asText()).isEqualTo("bearer");
+        assertThat(securityScheme.path("bearerFormat").asText()).isEqualTo("JWT");
     }
 
     @Test
@@ -243,5 +277,14 @@ class TransactionControllerIT {
                 description,
                 Instant.parse("2026-01-01T00:00:00Z")
         ));
+    }
+
+    private JsonNode parameterNamed(JsonNode parameters, String name) {
+        for (JsonNode parameter : parameters) {
+            if (name.equals(parameter.path("name").asText())) {
+                return parameter;
+            }
+        }
+        throw new AssertionError("OpenAPI parameter not found: " + name);
     }
 }
