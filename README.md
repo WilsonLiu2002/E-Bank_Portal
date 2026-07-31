@@ -18,25 +18,25 @@ Reusable Spring Boot REST API for returning a paginated list of money account tr
 - CircleCI configuration running `mvn verify`.
 - Local end-to-end smoke test that exercises PostgreSQL, Kafka, exchange rates, JWT security, and the API response.
 
-## Challenge Requirement Coverage
+## Production Standards Coverage
 
-| Requirement from the brief | How it is handled in this repository |
+| Engineering concern | How it is handled in this repository |
 | --- | --- |
-| Reusable REST API for transaction pages | `TransactionController` exposes `GET /api/v1/transactions` with month, target currency, page, and size query parameters. The response uses explicit DTOs for transactions, totals, and pagination metadata. |
-| Logged-on customer only | The endpoint never accepts a customer ID parameter. `CustomerIdentityResolver` derives the customer from JWT claims, and `TransactionQueryService` queries only that customer's rows. |
-| JWT authentication and authorization | Spring Security runs as an OAuth2 resource server. Production-style validation uses a JWKS URI through `JWT_JWK_SET_URI`; the local signed-JWT demo generates RS256 tokens and proves tampered tokens are rejected. |
-| Calendar-month filtering | The API accepts `YYYY-MM` and converts it into an inclusive start date and exclusive end date. The current implementation uses `valueDate` because the simplified event model does not include a separate creation timestamp. |
-| Paginated transactions | Spring Data `PageRequest` is used with deterministic ordering by `valueDate desc, transactionId asc`. The response includes page number, size, total elements, and total pages. |
-| Page-level credit and debit totals | The service calculates totals for the current page only. Positive amounts are credits, negative amounts are debits returned as positive totals. |
-| Current exchange rate from third party | `ExternalExchangeRateClient` calls a configurable provider endpoint, retries once, and caches current rates briefly to reduce provider load. The local stack uses a mock exchange-rate provider. |
-| Transactions consumed from Kafka | `TransactionConsumer` listens to `money-account-transactions`; the Kafka message key is the transaction ID, and the JSON value is mapped into the read model. |
+| API modeling | `TransactionController` exposes `GET /api/v1/transactions` with month, target currency, page, and size query parameters. The response uses explicit DTOs for transactions, converted totals, and pagination metadata. OpenAPI annotations document the endpoint, errors, and bearer-JWT security at `/v3/api-docs` and `/swagger-ui.html`. |
+| Authentication | Spring Security runs as an OAuth2 resource server. Production-style validation uses a JWKS URI through `JWT_JWK_SET_URI`; the local signed-JWT demo generates RS256 tokens and proves tampered tokens are rejected. |
+| Authorization | The endpoint never accepts a customer ID parameter. `CustomerIdentityResolver` derives the logged-on customer from JWT claims, and `TransactionQueryService` queries only rows owned by that customer. |
+| Calendar-month transaction retrieval | The API accepts `YYYY-MM` and converts it into an inclusive start date and exclusive end date. The current implementation uses `valueDate` because the simplified event model does not include a separate creation timestamp. |
+| Pagination and deterministic ordering | Spring Data `PageRequest` is used with ordering by `valueDate desc, transactionId asc`. The response includes page number, size, total elements, and total pages. |
+| Credit and debit totals | The service calculates totals for the current page only. Positive amounts are credits, negative amounts are debits returned as positive totals. |
+| Exchange-rate integration | `ExternalExchangeRateClient` calls a configurable provider endpoint, retries once, and caches current rates briefly to reduce provider load. The local stack uses a mock exchange-rate provider. |
+| Kafka event ingestion | `TransactionConsumer` listens to `money-account-transactions`; the Kafka message key is the transaction ID, and the JSON value is mapped into the read model. |
 | Efficient data access | Kafka is used as the event source, while PostgreSQL/H2 is used as an indexed read model for online queries. The main index is `(customer_id, value_date desc, transaction_id)`. |
 | Schema evolution | Transaction events contain `schemaVersion`, and Jackson ignores unknown JSON fields so additive changes do not break the consumer. Version-specific mappers can be added for breaking changes. |
-| API modeling | OpenAPI annotations document the endpoint, response, errors, and bearer-JWT security. `/v3/api-docs` and `/swagger-ui.html` are exposed. |
-| Logging and monitoring | Kafka ingestion logs offsets, partitions, and keys. Spring Boot Actuator exposes health, liveness, readiness, metrics, and Prometheus endpoints. |
-| Testing | Unit, integration, signed-JWT, API, OpenAPI, and local smoke tests are included. CircleCI runs `mvn --batch-mode verify` on every pushed commit. |
-| Docker and Kubernetes/OpenShift | `Dockerfile`, `docker-compose.yml`, Kubernetes manifests, HPA, and an OpenShift route are included under `k8s/`. |
-| Documentation and diagrams | This README explains the implementation. `docs/architecture.md` contains C4/context, component-flow, and data-model diagrams. `docs/decisions.md` records design decisions. |
+| Logging | Kafka ingestion logs offsets, partitions, and keys so event processing can be traced during local runs and in deployed environments. |
+| Monitoring | Spring Boot Actuator exposes health, liveness, readiness, metrics, and Prometheus endpoints. |
+| Testing strategy | Unit, integration, signed-JWT, API, OpenAPI, and local smoke tests are included. CircleCI runs `mvn --batch-mode verify` on every pushed commit. |
+| Container and platform deployment | `Dockerfile`, `docker-compose.yml`, Kubernetes manifests, HPA, and an OpenShift route are included under `k8s/`. |
+| Documentation and architecture | This README explains the implementation. `docs/architecture.md` contains C4/context, component-flow, and data-model diagrams. `docs/decisions.md` records design decisions. |
 
 ## Architecture At A Glance
 
@@ -55,7 +55,7 @@ flowchart LR
 
 Kafka remains the event source, while the relational read model exists for fast customer-month pagination. This keeps the online API query predictable even when customers have years of history and thousands of monthly transactions.
 
-## How To Review This Submission
+## How To Review The Service
 
 For a quick code review, start with these files:
 
