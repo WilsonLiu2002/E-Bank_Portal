@@ -18,6 +18,64 @@ Reusable Spring Boot REST API for returning a paginated list of money account tr
 - CircleCI configuration running `mvn verify`.
 - Local end-to-end smoke test that exercises PostgreSQL, Kafka, exchange rates, JWT security, and the API response.
 
+## Challenge Requirement Coverage
+
+| Requirement from the brief | How it is handled in this repository |
+| --- | --- |
+| Reusable REST API for transaction pages | `TransactionController` exposes `GET /api/v1/transactions` with month, target currency, page, and size query parameters. The response uses explicit DTOs for transactions, totals, and pagination metadata. |
+| Logged-on customer only | The endpoint never accepts a customer ID parameter. `CustomerIdentityResolver` derives the customer from JWT claims, and `TransactionQueryService` queries only that customer's rows. |
+| JWT authentication and authorization | Spring Security runs as an OAuth2 resource server. Production-style validation uses a JWKS URI through `JWT_JWK_SET_URI`; the local signed-JWT demo generates RS256 tokens and proves tampered tokens are rejected. |
+| Calendar-month filtering | The API accepts `YYYY-MM` and converts it into an inclusive start date and exclusive end date. The current implementation uses `valueDate` because the simplified event model does not include a separate creation timestamp. |
+| Paginated transactions | Spring Data `PageRequest` is used with deterministic ordering by `valueDate desc, transactionId asc`. The response includes page number, size, total elements, and total pages. |
+| Page-level credit and debit totals | The service calculates totals for the current page only. Positive amounts are credits, negative amounts are debits returned as positive totals. |
+| Current exchange rate from third party | `ExternalExchangeRateClient` calls a configurable provider endpoint, retries once, and caches current rates briefly to reduce provider load. The local stack uses a mock exchange-rate provider. |
+| Transactions consumed from Kafka | `TransactionConsumer` listens to `money-account-transactions`; the Kafka message key is the transaction ID, and the JSON value is mapped into the read model. |
+| Efficient data access | Kafka is used as the event source, while PostgreSQL/H2 is used as an indexed read model for online queries. The main index is `(customer_id, value_date desc, transaction_id)`. |
+| Schema evolution | Transaction events contain `schemaVersion`, and Jackson ignores unknown JSON fields so additive changes do not break the consumer. Version-specific mappers can be added for breaking changes. |
+| API modeling | OpenAPI annotations document the endpoint, response, errors, and bearer-JWT security. `/v3/api-docs` and `/swagger-ui.html` are exposed. |
+| Logging and monitoring | Kafka ingestion logs offsets, partitions, and keys. Spring Boot Actuator exposes health, liveness, readiness, metrics, and Prometheus endpoints. |
+| Testing | Unit, integration, signed-JWT, API, OpenAPI, and local smoke tests are included. CircleCI runs `mvn --batch-mode verify` on every pushed commit. |
+| Docker and Kubernetes/OpenShift | `Dockerfile`, `docker-compose.yml`, Kubernetes manifests, HPA, and an OpenShift route are included under `k8s/`. |
+| Documentation and diagrams | This README explains the implementation. `docs/architecture.md` contains C4/context, component-flow, and data-model diagrams. `docs/decisions.md` records design decisions. |
+
+## Architecture At A Glance
+
+```mermaid
+flowchart LR
+    portal["E-Banking Portal"] -->|"Bearer JWT"| api["Transaction REST API"]
+    api -->|"validate signature and claims"| identity["Identity provider / JWKS"]
+    api -->|"customer + month + page"| readModel[("Indexed transaction read model")]
+    api -->|"current rates"| rates["Exchange-rate provider"]
+    kafka[("Kafka topic<br/>key = transaction ID")] --> consumer["Kafka consumer"]
+    consumer -->|"upsert by transaction ID"| readModel
+    readModel --> api
+    rates --> api
+    api -->|"transactions + converted page totals"| portal
+```
+
+Kafka remains the event source, while the relational read model exists for fast customer-month pagination. This keeps the online API query predictable even when customers have years of history and thousands of monthly transactions.
+
+## How To Review This Submission
+
+For a quick code review, start with these files:
+
+- API and authorization: `src/main/java/com/ebanking/transactions/api/TransactionController.java`
+- Customer identity from JWT: `src/main/java/com/ebanking/transactions/security/CustomerIdentityResolver.java`
+- Kafka ingestion: `src/main/java/com/ebanking/transactions/kafka/TransactionConsumer.java`
+- Query and page totals: `src/main/java/com/ebanking/transactions/service/TransactionQueryService.java`
+- Exchange rates: `src/main/java/com/ebanking/transactions/exchange/ExternalExchangeRateClient.java`
+- Read model schema and indexes: `src/main/resources/db/migration/V1__create_transaction_read_model.sql`
+- Kubernetes/OpenShift deployment: `k8s/`
+- Test coverage: `src/test/java/com/ebanking/transactions/` and `docs/test-plan.md`
+
+For a functional review:
+
+1. Run `mvn --batch-mode verify`.
+2. Run `./scripts/start-signed-jwt-demo.sh`.
+3. Open `http://localhost:8080/`.
+4. Click `Signed JWTs`, select a customer, and click `Fetch`.
+5. Confirm that changing the selected customer changes the visible transaction IDs and that the API never takes a customer ID as input.
+
 ## API Model
 
 Request:
