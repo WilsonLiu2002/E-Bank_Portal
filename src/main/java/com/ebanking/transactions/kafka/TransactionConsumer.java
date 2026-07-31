@@ -1,10 +1,12 @@
 package com.ebanking.transactions.kafka;
 
+import com.ebanking.transactions.domain.MoneyAccountTransaction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -28,8 +30,12 @@ public class TransactionConsumer {
                         @Header(KafkaHeaders.RECEIVED_KEY) String transactionId,
                         ConsumerRecord<String, String> record) throws JsonProcessingException {
         TransactionMessage message = objectMapper.readValue(payload, TransactionMessage.class);
-        ingestionService.ingest(transactionId, message);
-        log.info("Ingested transaction offset={} partition={} key={}",
-                record.offset(), record.partition(), transactionId);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("transactionId", transactionId)) {
+            MoneyAccountTransaction transaction = ingestionService.ingest(transactionId, message);
+            try (MDC.MDCCloseable ignoredCustomer = MDC.putCloseable("customerId", transaction.getCustomerId())) {
+                log.info("Ingested transaction partition={} offset={} topic={}",
+                        record.partition(), record.offset(), record.topic());
+            }
+        }
     }
 }

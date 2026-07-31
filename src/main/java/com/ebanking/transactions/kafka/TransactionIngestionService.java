@@ -27,12 +27,12 @@ public class TransactionIngestionService {
     }
 
     @Transactional
-    public void ingest(String transactionId, TransactionMessage message) {
+    public MoneyAccountTransaction ingest(String transactionId, TransactionMessage message) {
         message.validate(transactionId);
         AccountOwnership owner = accountOwnershipRepository.findById(message.accountIban())
                 .orElseThrow(() -> new UnknownAccountException(message.accountIban()));
         Instant now = clock.instant();
-        transactionRepository.findById(transactionId).ifPresentOrElse(existing -> {
+        return transactionRepository.findById(transactionId).map(existing -> {
             existing.replaceWith(
                     message.amount(),
                     message.currency().toUpperCase(Locale.ROOT),
@@ -41,7 +41,8 @@ public class TransactionIngestionService {
                     message.description(),
                     now
             );
-        }, () -> transactionRepository.save(new MoneyAccountTransaction(
+            return existing;
+        }).orElseGet(() -> transactionRepository.save(new MoneyAccountTransaction(
                 transactionId,
                 owner.getCustomerId(),
                 message.amount(),

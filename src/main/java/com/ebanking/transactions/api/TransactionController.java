@@ -14,6 +14,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,6 +34,8 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityScheme(name = "bearer-jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 @Validated
 public class TransactionController {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
 
     private final TransactionQueryService transactionQueryService;
     private final CustomerIdentityResolver customerIdentityResolver;
@@ -68,6 +73,10 @@ public class TransactionController {
                 Sort.Order.desc("valueDate"),
                 Sort.Order.asc("transactionId")
         ));
-        return transactionQueryService.findCustomerTransactions(customerId, month, targetCurrency, pageable);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("customerId", customerId)) {
+            log.info("Transaction page requested month={} targetCurrency={} page={} size={}",
+                    month, targetCurrency, page, size);
+            return transactionQueryService.findCustomerTransactions(customerId, month, targetCurrency, pageable);
+        }
     }
 }

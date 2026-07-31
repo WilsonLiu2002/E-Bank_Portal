@@ -52,5 +52,7 @@ server:
   port: ${SERVER_PORT:8080}
 
 logging:
+  pattern:
+    level: "%5p [requestId=%X{requestId} customerId=%X{customerId} transactionId=%X{transactionId}]"
   level:
     com.ebanking.transactions: INFO

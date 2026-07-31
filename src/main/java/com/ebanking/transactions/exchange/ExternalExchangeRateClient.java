@@ -72,7 +72,8 @@ public class ExternalExchangeRateClient implements ExchangeRateClient {
                 return response.rates().get(target);
             } catch (RuntimeException exception) {
                 firstFailure = exception;
-                log.warn("Exchange-rate lookup failed for {}/{} on attempt {}", source, target, attempt);
+                log.warn("Exchange-rate lookup failed sourceCurrency={} targetCurrency={} attempt={} message={}",
+                        source, target, attempt, exception.getMessage());
             }
         }
         throw firstFailure;

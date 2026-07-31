@@ -7,6 +7,8 @@ import com.ebanking.transactions.api.TransactionPageDto;
 import com.ebanking.transactions.domain.MoneyAccountTransaction;
 import com.ebanking.transactions.domain.MoneyAccountTransactionRepository;
 import com.ebanking.transactions.exchange.MoneyConversionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.Locale;
 
 @Service
 public class TransactionQueryService {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionQueryService.class);
 
     private final MoneyAccountTransactionRepository transactionRepository;
     private final MoneyConversionService moneyConversionService;
@@ -69,12 +73,15 @@ public class TransactionQueryService {
                         transaction.getDescription()))
                 .toList();
 
-        return new TransactionPageDto(
+        TransactionPageDto response = new TransactionPageDto(
                 transactions,
                 new MoneyDto(totalCredit, normalizedTargetCurrency),
                 new MoneyDto(totalDebit, normalizedTargetCurrency),
                 new PageMetadataDto(page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages())
         );
+        log.info("Transaction page resolved month={} targetCurrency={} returnedRows={} totalElements={}",
+                yearMonth, normalizedTargetCurrency, transactions.size(), page.getTotalElements());
+        return response;
     }
 
     private YearMonth parse(String month) {
