@@ -19,10 +19,15 @@ Covered by CI:
 - Integration tests for real RS256-signed JWT bearer tokens and tamper rejection.
 - Integration checks for unauthenticated rejection, OpenAPI contract shape, request correlation, and demo UI static assets.
 - Testcontainers integration test for real Kafka ingestion into a real PostgreSQL read model.
+- JaCoCo coverage report and coverage threshold enforcement.
+- SpotBugs static bug analysis.
+- Checkstyle source and style validation.
 
 CircleCI runs the same Maven command on every pushed commit.
 
 The Testcontainers suite requires Docker. CI enables a Docker daemon before running Maven so the Kafka and PostgreSQL containers can start.
+
+CI stores the Surefire/Failsafe test results and publishes JaCoCo, SpotBugs, and Checkstyle reports as build artifacts.
 
 ## Local End-to-End Smoke Test
 
@@ -120,6 +125,9 @@ Expected rows:
 | OpenAPI contract stability | `TransactionControllerIT` verifies the published path, parameters, responses, and bearer security scheme |
 | Request correlation and logging | `RequestCorrelationFilter`, API header assertions, MDC-backed log pattern |
 | Real infrastructure integration | `TransactionServiceContainerIT` runs Kafka and PostgreSQL with Testcontainers |
+| Coverage gate | JaCoCo report and coverage check during `mvn verify` |
+| Static bug analysis | SpotBugs check during `mvn verify` |
+| Code style | Checkstyle check using `config/checkstyle/checkstyle.xml` |
 | Monitoring | Actuator health/readiness/liveness/metrics/Prometheus endpoints |
 | Docker/Kubernetes/OpenShift | `Dockerfile`, `docker-compose.yml`, `k8s/` manifests |
 | CI | CircleCI `mvn --batch-mode verify` pipeline |

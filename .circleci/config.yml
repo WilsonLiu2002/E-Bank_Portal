@@ -14,7 +14,7 @@ jobs:
           keys:
             - maven-v1-{{ checksum "pom.xml" }}
       - run:
-          name: Unit and integration tests
+          name: Tests and quality gates
           command: mvn --batch-mode verify
       - save_cache:
           paths:
@@ -22,6 +22,17 @@ jobs:
           key: maven-v1-{{ checksum "pom.xml" }}
       - store_test_results:
           path: target/surefire-reports
+      - store_test_results:
+          path: target/failsafe-reports
+      - store_artifacts:
+          path: target/site/jacoco
+          destination: coverage
+      - store_artifacts:
+          path: target/checkstyle-result.xml
+          destination: quality/checkstyle-result.xml
+      - store_artifacts:
+          path: target/spotbugsXml.xml
+          destination: quality/spotbugsXml.xml
       - store_artifacts:
           path: target
 

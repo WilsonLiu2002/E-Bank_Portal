@@ -8,4 +8,7 @@ public record TransactionPageDto(
         MoneyDto totalDebit,
         PageMetadataDto page
 ) {
+    public TransactionPageDto {
+        transactions = List.copyOf(transactions);
+    }
 }

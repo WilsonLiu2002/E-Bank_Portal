@@ -21,7 +21,7 @@ public class TransactionConsumer {
     private final TransactionIngestionService ingestionService;
 
     public TransactionConsumer(ObjectMapper objectMapper, TransactionIngestionService ingestionService) {
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper.copy();
         this.ingestionService = ingestionService;
     }
 

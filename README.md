@@ -16,7 +16,7 @@ Reusable Spring Boot REST API for returning a paginated list of money account tr
 - Health, readiness, liveness, metrics, and Prometheus actuator endpoints.
 - Correlation IDs via `X-Request-Id`, with request/customer/transaction context added to structured logs.
 - Dockerfile and Kubernetes/OpenShift manifests.
-- CircleCI configuration running `mvn verify`.
+- CircleCI configuration running `mvn verify` with tests, coverage, static bug analysis, and style checks.
 - Testcontainers and local end-to-end smoke tests that exercise PostgreSQL, Kafka, exchange rates, JWT security, and the API response.
 
 ## Architecture Diagrams
@@ -117,6 +117,7 @@ For production, the equivalent producer would be an upstream banking application
 | Logging | `X-Request-Id` is echoed back to callers and stored in MDC. API logs include request context, customer-scoped query logs include `customerId`, and Kafka ingestion logs include partition, offset, transaction ID, and owning customer. |
 | Monitoring | Spring Boot Actuator exposes health, liveness, readiness, metrics, and Prometheus endpoints. |
 | Testing strategy | Unit, integration, signed-JWT, API, OpenAPI contract, Testcontainers, and local smoke tests are included. CircleCI runs `mvn --batch-mode verify` on every pushed commit. |
+| Code quality gates | JaCoCo enforces coverage thresholds, SpotBugs fails the build on static bug findings, and Checkstyle enforces lightweight style rules such as no star imports, no unused imports, no tabs, and bounded line length. |
 | Container and platform deployment | `Dockerfile`, `docker-compose.yml`, Kubernetes manifests, HPA, and an OpenShift route are included under `k8s/`. |
 | Documentation and architecture | This README embeds the two primary architecture diagrams directly. `docs/architecture.md` contains supplementary C4/context, component-flow, and data-model diagrams. `docs/decisions.md` records design decisions. |
 
@@ -354,6 +355,12 @@ mvn verify
 
 `mvn verify` includes unit tests, Spring integration tests, signed-JWT resource-server tests, OpenAPI contract checks, and Testcontainers tests for Kafka plus PostgreSQL. Docker must be available for the Testcontainers suite.
 
+The same command also runs code quality gates:
+
+- JaCoCo coverage report and threshold check.
+- SpotBugs static bug analysis.
+- Checkstyle source/style validation using `config/checkstyle/checkstyle.xml`.
+
 Run the local end-to-end smoke test:
 
 ```bash
@@ -394,6 +401,8 @@ The repository includes `.circleci/config.yml`. After pushing the repository and
 ```bash
 mvn --batch-mode verify
 ```
+
+CircleCI stores test reports, JaCoCo coverage HTML, Checkstyle XML, SpotBugs XML, and the Maven build artifacts.
 
 Successful CircleCI pipeline: [E-Bank_Portal build-test](https://app.circleci.com/pipelines/github/WilsonLiu2002/E-Bank_Portal).
 
