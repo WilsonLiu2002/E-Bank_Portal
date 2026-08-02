@@ -16,14 +16,18 @@ jobs:
       - run:
           name: Tests and quality gates
           command: mvn --batch-mode verify
+      - run:
+          name: Prepare JUnit test reports
+          command: |
+            mkdir -p target/circleci-test-results/surefire target/circleci-test-results/failsafe
+            find target/surefire-reports -maxdepth 1 -name 'TEST-*.xml' -exec cp {} target/circleci-test-results/surefire/ \;
+            find target/failsafe-reports -maxdepth 1 -name 'TEST-*.xml' -exec cp {} target/circleci-test-results/failsafe/ \;
       - save_cache:
           paths:
             - ~/.m2
           key: maven-v1-{{ checksum "pom.xml" }}
       - store_test_results:
-          path: target/surefire-reports
-      - store_test_results:
-          path: target/failsafe-reports
+          path: target/circleci-test-results
       - store_artifacts:
           path: target/site/jacoco
           destination: coverage
