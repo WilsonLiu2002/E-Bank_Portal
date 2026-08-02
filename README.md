@@ -117,7 +117,7 @@ For production, the equivalent producer would be an upstream banking application
 | Logging | `X-Request-Id` is echoed back to callers and stored in MDC. API logs include request context, customer-scoped query logs include `customerId`, and Kafka ingestion logs include partition, offset, transaction ID, and owning customer. |
 | Monitoring | Spring Boot Actuator exposes health, liveness, readiness, metrics, and Prometheus endpoints. |
 | Testing strategy | Unit, integration, signed-JWT, API, OpenAPI contract, Testcontainers, and local smoke tests are included. CircleCI runs `mvn --batch-mode verify` on every pushed commit. |
-| Code quality gates | JaCoCo enforces coverage thresholds, SpotBugs fails the build on static bug findings, and Checkstyle enforces lightweight style rules such as no star imports, no unused imports, no tabs, and bounded line length. |
+| Code quality gates | JaCoCo enforces minimum 85% line coverage and 60% branch coverage, SpotBugs fails the build on static bug findings, and Checkstyle enforces lightweight style rules such as no star imports, no unused imports, no tabs, and bounded line length. |
 | Container and platform deployment | `Dockerfile`, `docker-compose.yml`, Kubernetes manifests, HPA, and an OpenShift route are included under `k8s/`. |
 | Documentation and architecture | This README embeds the two primary architecture diagrams directly. `docs/architecture.md` contains supplementary C4/context, component-flow, and data-model diagrams. `docs/decisions.md` records design decisions. |
 
@@ -357,7 +357,7 @@ mvn verify
 
 The same command also runs code quality gates:
 
-- JaCoCo coverage report and threshold check.
+- JaCoCo coverage report with minimum 85% line coverage and 60% branch coverage.
 - SpotBugs static bug analysis.
 - Checkstyle source/style validation using `config/checkstyle/checkstyle.xml`.
 

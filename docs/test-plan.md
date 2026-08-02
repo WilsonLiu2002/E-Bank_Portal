@@ -17,9 +17,10 @@ Covered by CI:
 - Integration tests for transaction ingestion into the read model.
 - Integration tests for the secured transaction API.
 - Integration tests for real RS256-signed JWT bearer tokens and tamper rejection.
+- Unit tests for exchange-rate HTTP lookup, currency normalization, caching, retry, provider contract failures, and invalid currency input.
 - Integration checks for unauthenticated rejection, OpenAPI contract shape, request correlation, and demo UI static assets.
 - Testcontainers integration test for real Kafka ingestion into a real PostgreSQL read model.
-- JaCoCo coverage report and coverage threshold enforcement.
+- JaCoCo coverage report with minimum 85% line coverage and 60% branch coverage.
 - SpotBugs static bug analysis.
 - Checkstyle source and style validation.
 
@@ -125,7 +126,7 @@ Expected rows:
 | OpenAPI contract stability | `TransactionControllerIT` verifies the published path, parameters, responses, and bearer security scheme |
 | Request correlation and logging | `RequestCorrelationFilter`, API header assertions, MDC-backed log pattern |
 | Real infrastructure integration | `TransactionServiceContainerIT` runs Kafka and PostgreSQL with Testcontainers |
-| Coverage gate | JaCoCo report and coverage check during `mvn verify` |
+| Coverage gate | JaCoCo report and 85% line / 60% branch coverage check during `mvn verify` |
 | Static bug analysis | SpotBugs check during `mvn verify` |
 | Code style | Checkstyle check using `config/checkstyle/checkstyle.xml` |
 | Monitoring | Actuator health/readiness/liveness/metrics/Prometheus endpoints |
