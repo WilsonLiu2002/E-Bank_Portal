@@ -346,6 +346,13 @@ Run the local end-to-end smoke test:
 ./scripts/e2e-smoke-test.sh
 ```
 
+If the service is already running in signed-JWT mode, use one of the generated demo tokens:
+
+```bash
+source local/identity/tokens.env
+TOKEN="${TOKEN_DEFAULT}" ./scripts/e2e-smoke-test.sh
+```
+
 The smoke test starts local dependencies, seeds ownership data, publishes Kafka transactions, calls the secured API, and verifies row-level authorization plus converted page totals.
 
 ## Local Development
