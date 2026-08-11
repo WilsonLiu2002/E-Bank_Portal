@@ -19,6 +19,16 @@ transactions:
   kafka:
     topic: money-account-transactions-test
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 logging:
   level:
     org.springframework.kafka: WARN

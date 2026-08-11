@@ -228,6 +228,17 @@ class TransactionControllerIT {
     }
 
     @Test
+    void exposesOperationalMetricsWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/actuator/metrics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.names").isArray());
+
+        mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("jvm_memory_used_bytes")));
+    }
+
+    @Test
     void servesDemoUiWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
