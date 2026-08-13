@@ -41,15 +41,22 @@ if transactions_per_account_month < 1:
 
 start_year, start_month_number = [int(part) for part in start_month.split("-")]
 currencies = ["CHF", "GBP", "EUR"]
-descriptions = [
+credit_descriptions = [
     "Synthetic payroll",
+    "Synthetic bonus",
+    "Synthetic refund",
+    "Synthetic incoming transfer",
+    "Synthetic interest credit",
+]
+debit_descriptions = [
     "Synthetic card payment",
     "Synthetic rent",
     "Synthetic grocery",
     "Synthetic utilities",
-    "Synthetic transfer",
     "Synthetic subscription",
     "Synthetic cash withdrawal",
+    "Synthetic insurance payment",
+    "Synthetic travel booking",
 ]
 
 customers = ["P-0123456789"]
@@ -71,18 +78,46 @@ for customer_index, customer_id in enumerate(customers):
         for month_offset in range(month_count):
             year, month = add_months(start_year, start_month_number, month_offset)
             _, last_day = calendar.monthrange(year, month)
+            monthly_factor = (month_offset + 1) * (customer_index + 2)
+            seasonal_factor = ((month + account_index + customer_index) % 7) + 1
+
             for tx_index in range(transactions_per_account_month):
-                day = min(((tx_index * 3) % 28) + 1, last_day)
-                is_credit = tx_index % 5 == 0
-                base_amount = 1200 + (customer_index * 37) + (account_index * 19) + (tx_index * 11)
-                amount = base_amount if is_credit else -(25 + (tx_index * 7) + (account_index * 3))
+                day = min(((tx_index * seasonal_factor) % 28) + 1, last_day)
+                credit_slot = (tx_index + month_offset + account_index + customer_index) % 6
+                is_credit = credit_slot in (0, 4)
+
+                if is_credit:
+                    base_amount = (
+                        950
+                        + (monthly_factor * 23)
+                        + (seasonal_factor * 41)
+                        + (account_index * 67)
+                        + (tx_index * 29)
+                    )
+                    amount = base_amount + ((month % 3) * 125)
+                    description = credit_descriptions[
+                        (tx_index + month_offset + customer_index) % len(credit_descriptions)
+                    ]
+                else:
+                    base_amount = (
+                        18
+                        + (monthly_factor * 5)
+                        + (seasonal_factor * 9)
+                        + (account_index * 11)
+                        + (tx_index * 13)
+                    )
+                    amount = -(base_amount + ((month % 4) * 17))
+                    description = debit_descriptions[
+                        (tx_index + month_offset + account_index) % len(debit_descriptions)
+                    ]
+
                 transaction = {
                     "schemaVersion": 1,
                     "amount": f"{amount:.2f}",
                     "currency": currency,
                     "accountIban": iban,
                     "valueDate": date(year, month, day).isoformat(),
-                    "description": descriptions[(tx_index + account_index + month_offset) % len(descriptions)],
+                    "description": description,
                 }
                 key_customer = customer_id.replace("-", "")
                 key = f"synth-{key_customer}-{year}{month:02d}-{currency}-{tx_index + 1:03d}"
